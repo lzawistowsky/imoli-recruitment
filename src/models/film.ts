@@ -14,4 +14,4 @@ const filmSchema = new Schema<IFilm>({
 
 const Film = model<IFilm>('Film', filmSchema);
 
-export default Film
+export { Film, IFilm }
