@@ -2,7 +2,7 @@ import { RequestHandler } from "express"
 import fetch from "node-fetch"
 import HttpException from "../exceptions/HttpException"
 
-type filmType = { releaseDate: string; title: string; episode_id: number }
+type filmType = { release_date: string, title: string, episode_id: number }
 
 export const getFilms: RequestHandler = async (req, res, next) => {
     try {
@@ -14,11 +14,13 @@ export const getFilms: RequestHandler = async (req, res, next) => {
             throw error
         }
         
+        let i = 0
         const films: filmType[] = await results.map((film: filmType) => {
+            i++
             return {
-                releaseDate: film.releaseDate,
+                release_date: film.release_date,
                 title: film.title,
-                episode_id: film.episode_id
+                id: i
             }
         })
 
