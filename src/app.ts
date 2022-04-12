@@ -7,6 +7,8 @@ import favoritesRoutes from './routes/favorites'
 
 const app = express()
 
+app.use(express.json())
+
 app.use(filmsRoutes)
 app.use(favoritesRoutes)
 
