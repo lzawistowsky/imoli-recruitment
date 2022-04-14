@@ -8,11 +8,13 @@ import { Film, IFilm } from "../models/film"
 import { List, IList } from "../models/list"
 import { Character, ICharacter } from "../models/character"
 
-type RequestBody = { listName: string, films: string[] }
+type PostFavoritesBody = { listName: string, films: string[] }
+type GetFavoritesQuery = { search: string, page: number, limit: number }
+type GetListParams = { id: Types.ObjectId }
 
 export const postFavorites: RequestHandler = async (req, res, next) => {
     try {
-        const body = req.body as RequestBody
+        const body = req.body as PostFavoritesBody
         const listName = body.listName
         const films = body.films
 
@@ -68,6 +70,64 @@ export const postFavorites: RequestHandler = async (req, res, next) => {
 
         res.status(200).json({
             list: newList
+        })
+    } catch (e) {
+        console.log(e)
+    }
+}
+
+export const getFavorites: RequestHandler = async (req, res, next) => {
+    try {
+        const query = req.query as unknown as GetFavoritesQuery
+        const search = query.search
+        const page = query.page || 1
+        const limit = query.page || 10
+
+        console.log(search)
+
+        let filter = {}
+        if (search) filter = { 
+            listName: { $regex: search, $options: "i" } 
+        }
+
+        const lists = await List.find(filter).limit(limit).skip(limit * ( page - 1 ))
+        if(!lists) {
+            const error = new HttpException(404, 'list not found')
+            throw error
+        }
+
+        const mappedList = lists.map(list => {
+            return {
+                id: list._id,
+                name: list.listName
+            }
+        })
+        
+        res.status(200).json({
+            lists: mappedList
+        })
+    } catch (e) {
+        console.log(e)
+    }
+}
+
+export const getList: RequestHandler = async (req, res, next) => {
+    try {
+        const params = req.params as unknown as GetListParams
+        const id = params.id
+
+        console.log(id)
+        const list = await List.findOne({_id: id}).populate({
+            path: 'films',
+            populate: { path: 'characterList' }
+        })
+        if(!list) {
+            const error = new HttpException(404, 'list with selected id not found')
+            throw error
+        }
+
+        res.status(200).json({
+            list: list
         })
     } catch (e) {
         console.log(e)
