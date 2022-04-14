@@ -83,8 +83,6 @@ export const getFavorites: RequestHandler = async (req, res, next) => {
         const page = query.page || 1
         const limit = query.page || 10
 
-        console.log(search)
-
         let filter = {}
         if (search) filter = { 
             listName: { $regex: search, $options: "i" } 
@@ -116,7 +114,6 @@ export const getList: RequestHandler = async (req, res, next) => {
         const params = req.params as unknown as GetListParams
         const id = params.id
 
-        console.log(id)
         const list = await List.findOne({_id: id}).populate({
             path: 'films',
             populate: { path: 'characterList' }
