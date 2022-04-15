@@ -3,6 +3,7 @@ import { HydratedDocument } from 'mongoose';
 import fetch from "node-fetch"
 import HttpException from "../exceptions/HttpException"
 import { Types } from "mongoose"
+import ExcelJS from 'exceljs'
 
 import { Film, IFilm } from "../models/film"
 import { List, IList } from "../models/list"
@@ -126,6 +127,52 @@ export const getList: RequestHandler = async (req, res, next) => {
         res.status(200).json({
             list: list
         })
+    } catch (e) {
+        console.log(e)
+    }
+}
+
+export const getListFile: RequestHandler = async (req, res, next) => {
+    try {
+        const params = req.params as unknown as GetListParams
+        const id = params.id
+
+        const list = await List.findOne({_id: id}).populate<{ films: Types.DocumentArray<IFilm> }>('films')
+        if(!list) {
+            const error = new HttpException(404, 'list with selected id not found')
+            throw error
+        }
+
+        let tableName: string[] = []
+        let tableMovies: string[] = []
+
+        for (const film of list.films) {
+            for(const character of film.characterList) {
+                const hero = await Character.findOne({ _id: character})
+                const name = (hero as ICharacter).name 
+                if(!tableName.includes(name)) {
+                    tableName.push(name)
+                    tableMovies.push(film.title)
+                } else {
+                    tableMovies[tableName.indexOf(name)] += ", " + film.title
+                }
+            }
+        }
+
+        const workbook = new ExcelJS.Workbook()
+        const sheet = workbook.addWorksheet('list details')
+
+        sheet.columns = [
+            { header: 'Character', key: 'character'},
+            { header: 'Movies', key: 'movies'}
+        ]
+
+        for (let i = 0; i < tableMovies.length; i++) sheet.addRow({character: tableName[i], movies: tableMovies[i]});
+        
+        const path: string = './excel/' + Date.now() + 'data.xlsx'
+        await workbook.xlsx.writeFile(path);
+
+        res.status(200).download(path)
     } catch (e) {
         console.log(e)
     }
