@@ -6,7 +6,8 @@
   "engines": { "node": "16.14.2" },
   "scripts": {
     "start": "node dist/app.js",
-    "postinstall": "tsc",
+    "tsc": "tsc",
+    "postinstall": "npm run tsc",
     "watch-node": "nodemon dist/app.js",
     "watch-ts": "tsc -w"
   },
