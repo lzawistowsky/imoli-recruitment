@@ -69,7 +69,7 @@ export const postFavorites: RequestHandler = async (req, res, next) => {
 
         const newList = await list.save()
 
-        res.status(200).json({
+        res.status(201).json({
             list: newList
         })
     } catch (e) {
@@ -82,7 +82,7 @@ export const getFavorites: RequestHandler = async (req, res, next) => {
         const query = req.query as unknown as GetFavoritesQuery
         const search = query.search
         const page = query.page || 1
-        const limit = query.page || 10
+        const limit = query.limit || 10
 
         let filter = {}
         if (search) filter = { 
