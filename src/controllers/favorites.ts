@@ -169,7 +169,7 @@ export const getListFile: RequestHandler = async (req, res, next) => {
 
         for (let i = 0; i < tableMovies.length; i++) sheet.addRow({character: tableName[i], movies: tableMovies[i]});
         
-        const path: string = __dirname + '/excel/' + Date.now() + 'data.xlsx'
+        const path: string = '.../excel/' + Date.now() + 'data.xlsx'
         await workbook.xlsx.writeFile(path);
 
         res.status(200).download(path)
