@@ -169,10 +169,13 @@ export const getListFile: RequestHandler = async (req, res, next) => {
 
         for (let i = 0; i < tableMovies.length; i++) sheet.addRow({character: tableName[i], movies: tableMovies[i]});
         
-        const path: string = process.cwd() + '/excel/' + Date.now() + 'data.xlsx'
-        await workbook.xlsx.writeFile(path);
+        const filename: string = Date.now() + 'data.xlsx'
+        res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+        res.setHeader("Content-Disposition", "attachment; filename=" + filename)
 
-        res.status(200).download(path)
+        await workbook.xlsx.write(res)
+        res.end()
+        
     } catch (e) {
         console.log(e)
     }
