@@ -30,6 +30,6 @@ export const getFavoritesValidation = [
 
 export const getListValidation = [
     param('id')
-        .isMongoId().withMessage('invalid mongoDB identificator'),
+        .isInt().withMessage('invalid identificator'),
     checkErrors
 ]

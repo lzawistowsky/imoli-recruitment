@@ -4,7 +4,7 @@ import fetch from "node-fetch"
 import HttpException from "../exceptions/HttpException"
 import { Like } from "typeorm"
 // import { Types } from "mongoose"
-// import ExcelJS from 'exceljs'
+import ExcelJS from 'exceljs'
 
 import { AppDataSource } from '../data-sorce'
 import { Film } from "../models/film"
@@ -17,7 +17,7 @@ const listRepository = AppDataSource.getRepository(List)
 
 type PostFavoritesBody = { listName: string, films: number[] }
 type GetFavoritesQuery = { search: string, page: number, limit: number }
-// type GetListParams = { id: Types.ObjectId }
+type GetListParams = { id: number }
 
 export const postFavorites: RequestHandler = async (req, res, next) => {
     try {
@@ -117,73 +117,81 @@ export const getFavorites: RequestHandler = async (req, res, next) => {
     }
 }
 
-// export const getList: RequestHandler = async (req, res, next) => {
-//     try {
-//         const params = req.params as unknown as GetListParams
-//         const id = params.id
+export const getList: RequestHandler = async (req, res, next) => {
+    try {
+        const params = req.params as unknown as GetListParams
+        const id = params.id
 
-//         const list = await List.findOne({_id: id}).populate({
-//             path: 'films',
-//             populate: { path: 'characterList' }
-//         })
-//         if(!list) {
-//             const error = new HttpException(404, 'list with selected id not found')
-//             throw error
-//         }
+        const list = await listRepository.findOne({
+            where: {
+                id: id
+            },
+            relations: ['films', 'films.characters']
+        })
+        if(!list) {
+            const error = new HttpException(404, 'list with selected id not found')
+            throw error
+        }
 
-//         res.status(200).json({
-//             list: list
-//         })
-//     } catch (e) {
-//         console.log(e)
-//     }
-// }
+        res.status(200).json({
+            list: list
+        })
+    } catch (e) {
+        console.log(e)
+    }
+}
 
-// export const getListFile: RequestHandler = async (req, res, next) => {
-//     try {
-//         const params = req.params as unknown as GetListParams
-//         const id = params.id
+export const getListFile: RequestHandler = async (req, res, next) => {
+    try {
+        const params = req.params as unknown as GetListParams
+        const id = params.id
 
-//         const list = await List.findOne({_id: id}).populate<{ films: Types.DocumentArray<IFilm> }>('films')
-//         if(!list) {
-//             const error = new HttpException(404, 'list with selected id not found')
-//             throw error
-//         }
+        const list = await listRepository.findOne({
+            where: { 
+                id: id 
+            },
+            relations: ['films', 'films.characters']
 
-//         let tableName: string[] = []
-//         let tableMovies: string[] = []
+        })
+        if(!list) {
+            const error = new HttpException(404, 'list with selected id not found')
+            throw error
+        }
 
-//         for (const film of list.films) {
-//             for(const character of film.characterList) {
-//                 const hero = await Character.findOne({ _id: character})
-//                 const name = (hero as ICharacter).name 
-//                 if(!tableName.includes(name)) {
-//                     tableName.push(name)
-//                     tableMovies.push(film.title)
-//                 } else {
-//                     tableMovies[tableName.indexOf(name)] += ", " + film.title
-//                 }
-//             }
-//         }
+        let tableName: string[] = []
+        let tableMovies: string[] = []
 
-//         const workbook = new ExcelJS.Workbook()
-//         const sheet = workbook.addWorksheet('list details')
+        for (const film of list.films) {
+            for(const character of film.characters) {
+                const hero = await characterRepository.findOneBy({ id: character.id })
+                const name = (hero as Character).name 
+                if(!tableName.includes(name)) {
+                    tableName.push(name)
+                    tableMovies.push(film.title)
+                } else {
+                    tableMovies[tableName.indexOf(name)] += ", " + film.title
+                }
+            }
+        }
 
-//         sheet.columns = [
-//             { header: 'Character', key: 'character'},
-//             { header: 'Movies', key: 'movies'}
-//         ]
+        const workbook = new ExcelJS.Workbook()
+        const sheet = workbook.addWorksheet('list details')
 
-//         for (let i = 0; i < tableMovies.length; i++) sheet.addRow({character: tableName[i], movies: tableMovies[i]});
+        sheet.columns = [
+            { header: 'Character', key: 'character'},
+            { header: 'Movies', key: 'movies'}
+        ]
+
+        for (let i = 0; i < tableMovies.length; i++) sheet.addRow({character: tableName[i], movies: tableMovies[i]});
         
-//         const filename: string = Date.now() + 'data.xlsx'
-//         res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
-//         res.setHeader("Content-Disposition", "attachment; filename=" + filename)
+        const filename: string = Date.now() + 'data.xlsx'
+        res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+        res.setHeader("Content-Disposition", "attachment; filename=" + filename)
 
-//         await workbook.xlsx.write(res)
-//         res.end()
+        await workbook.xlsx.write(res)
+        res.end()
         
-//     } catch (e) {
-//         console.log(e)
-//     }
-// }
+    } catch (e) {
+        console.log(e)
+    }
+}
