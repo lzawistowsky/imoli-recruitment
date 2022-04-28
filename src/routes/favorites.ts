@@ -1,12 +1,12 @@
 import { Router } from "express"
 
-import { postFavorites } from "../controllers/favorites"
+import { postFavorites, getFavorites } from "../controllers/favorites"
 import { postFavoritesValidation, getFavoritesValidation, getListValidation } from "../middleware/validation/favoritesValidation"
 
 const router = Router()
 
 router.post('/favorites', postFavoritesValidation, postFavorites)
-// router.get('/favorites', getFavoritesValidation, getFavorites)
+router.get('/favorites', getFavoritesValidation, getFavorites)
 // router.get('/favorites/:id', getListValidation, getList)
 // router.get('/favorites/:id/file', getListValidation, getListFile)
 

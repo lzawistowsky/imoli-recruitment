@@ -2,6 +2,7 @@ import { RequestHandler } from "express"
 // import { HydratedDocument } from 'mongoose';
 import fetch from "node-fetch"
 import HttpException from "../exceptions/HttpException"
+import { Like } from "typeorm"
 // import { Types } from "mongoose"
 // import ExcelJS from 'exceljs'
 
@@ -15,7 +16,7 @@ const characterRepository = AppDataSource.getRepository(Character)
 const listRepository = AppDataSource.getRepository(List)
 
 type PostFavoritesBody = { listName: string, films: number[] }
-// type GetFavoritesQuery = { search: string, page: number, limit: number }
+type GetFavoritesQuery = { search: string, page: number, limit: number }
 // type GetListParams = { id: Types.ObjectId }
 
 export const postFavorites: RequestHandler = async (req, res, next) => {
@@ -78,38 +79,43 @@ export const postFavorites: RequestHandler = async (req, res, next) => {
     }
 }
 
-// export const getFavorites: RequestHandler = async (req, res, next) => {
-//     try {
-//         const query = req.query as unknown as GetFavoritesQuery
-//         const search = query.search
-//         const page = query.page || 1
-//         const limit = query.limit || 10
+export const getFavorites: RequestHandler = async (req, res, next) => {
+    try {
+        const query = req.query as unknown as GetFavoritesQuery
+        const search = query.search
+        const page = query.page || 1
+        const limit = query.limit || 10
 
-//         let filter = {}
-//         if (search) filter = { 
-//             listName: { $regex: search, $options: "i" } 
-//         }
+        let filter = {}
+        if (search) filter = { 
+            listName: Like(`%${search}%`)
+        }
 
-//         const lists = await List.find(filter).limit(limit).skip(limit * ( page - 1 ))
-//         if(!lists) {
-//             const error = new HttpException(404, 'list not found')
-//             throw error
-//         }
+        const lists = await listRepository.find({
+            where: filter,
+            take: limit,
+            skip: limit * ( page - 1 )
+        })
 
-//         const mappedList = lists.map(list => {
-//             return {
-//                 id: list._id,
-//                 name: list.listName
-//             }
-//         })
+        if(!lists) {
+            const error = new HttpException(404, 'list not found')
+            throw error
+        }
+
+        const mappedList = lists.map(list => {
+            return {
+                id: list.id,
+                name: list.listName
+            }
+        })
         
-//         res.status(200).json({
-//             lists: mappedList
-//         })
-//     } catch (e) {
-//         console.log(e)
-//     }
-// }
+        res.status(200).json({
+            lists: mappedList
+        })
+    } catch (e) {
+        console.log(e)
+    }
+}
 
 // export const getList: RequestHandler = async (req, res, next) => {
 //     try {

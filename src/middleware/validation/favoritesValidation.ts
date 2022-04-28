@@ -18,7 +18,7 @@ export const getFavoritesValidation = [
     query('search')
         .optional()
         .trim()
-        .isAlphanumeric().withMessage('title of list must be alphanumeric'),
+        .isAlphanumeric('pl-PL', { ignore: ' ' }).withMessage('title of list must be alphanumeric'),
     query('page')
         .optional()
         .isInt({ min: 1 }).withMessage('page must be int greater than 0'),
