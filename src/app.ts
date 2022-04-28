@@ -1,7 +1,8 @@
 import express from 'express'
-import mongoose from 'mongoose'
 import helmet from 'helmet'
 import 'dotenv/config'
+
+import { AppDataSource } from './data-sorce'
 
 import filmsRoutes from './routes/films'
 import favoritesRoutes from './routes/favorites'
@@ -14,8 +15,8 @@ app.use(express.json())
 app.use(filmsRoutes)
 app.use(favoritesRoutes)
 
-mongoose.connect(process.env.DB_CONNECT as string).then(res => {
+AppDataSource.initialize().then(() => {
     app.listen(process.env.PORT || 8080)
-}).catch(err => {
-    console.log(err)
+}).catch((err) => {
+    console.error("Error during Data Source initialization:", err)
 })
