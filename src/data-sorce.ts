@@ -6,7 +6,7 @@ import { Film } from "./models/film"
 import 'dotenv/config'
 
 const AppDataSource = new DataSource({
-    url: process.env.DB_CONNECT,
+    url: process.env.DATABASE_URL,
     type: "postgres",
     synchronize: true,
     ssl: true,
