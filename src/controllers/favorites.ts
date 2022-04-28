@@ -75,7 +75,7 @@ export const postFavorites: RequestHandler = async (req, res, next) => {
             list: newList
         })
     } catch (e) {
-        console.log(e)
+        next(e)
     }
 }
 
@@ -113,7 +113,7 @@ export const getFavorites: RequestHandler = async (req, res, next) => {
             lists: mappedList
         })
     } catch (e) {
-        console.log(e)
+        next(e)
     }
 }
 
@@ -137,7 +137,7 @@ export const getList: RequestHandler = async (req, res, next) => {
             list: list
         })
     } catch (e) {
-        console.log(e)
+        next(e)
     }
 }
 
@@ -192,6 +192,6 @@ export const getListFile: RequestHandler = async (req, res, next) => {
         res.end()
         
     } catch (e) {
-        console.log(e)
+        next(e)
     }
 }

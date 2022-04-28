@@ -28,6 +28,6 @@ export const getFilms: RequestHandler = async (req, res, next) => {
             films: films
         })
     } catch (e) {
-        console.log(e)
+        next(e)
     }
 }
